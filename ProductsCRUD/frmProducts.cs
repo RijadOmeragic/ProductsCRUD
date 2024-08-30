@@ -1,18 +1,8 @@
 ﻿using ProductsCRUD.Data;
 using ProductsCRUD.Helpers;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Data;
-using System.Data.Entity.Validation;
-using System.Data.SQLite;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 
@@ -28,14 +18,14 @@ namespace ProductsCRUD
         }
 
 
-        private void frmProducts_Load(object sender, EventArgs e)                // load forme
+        private void frmProducts_Load(object sender, EventArgs e)              
         {
             productsLoad();
             cmbCategories.DataSource = DatabaseConnection.ProductsDB.Categories.ToList();
         }
 
 
-        private void productsLoad()                                              // load proizvoda 
+        private void productsLoad()                                             
         {
             dgvProducts.DataSource = DatabaseConnection.ProductsDB.Products.ToList();
         }
@@ -82,25 +72,59 @@ namespace ProductsCRUD
             {
                 var product = DatabaseConnection.ProductsDB.Products.Find(int.Parse(txtId.Text));
 
-                product.Name = txtName.Text;
-                product.Description = txtDescription.Text;
-                product.Quantity = int.Parse(txtQuantity.Text);
-                product.Category = cmbCategories.SelectedItem as Category;
-                product.Image = ImageHelper.FromImageToByte(pbImage.Image);
+                bool isModified = false;
 
-                DatabaseConnection.ProductsDB.SaveChanges();
+                if (product.Name != txtName.Text)
+                {
+                    product.Name = txtName.Text;
+                    isModified = true;
+                }
 
-                productsLoad();
+                if (product.Description != txtDescription.Text)
+                {
+                    product.Description = txtDescription.Text;
+                    isModified = true;
+                }
 
-                MessageBox.Show("The product was updated successfully.");
+                if (product.Quantity != int.Parse(txtQuantity.Text))
+                {
+                    product.Quantity = int.Parse(txtQuantity.Text);
+                    isModified = true;
+                }
 
+                if (product.Category != cmbCategories.SelectedItem as Category)
+                {
+                    product.Category = cmbCategories.SelectedItem as Category;
+                    isModified = true;
+                }
+
+                var newImage = ImageHelper.FromImageToByte(pbImage.Image);
+                if (!product.Image.SequenceEqual(newImage))
+                {
+                    product.Image = newImage;
+                    isModified = true;
+                }
+
+                if (isModified)
+                {
+                    DatabaseConnection.ProductsDB.SaveChanges();
+                    productsLoad();
+                    MessageBox.Show("The product was updated successfully.");
+                }
+                else
+                {
+                    MessageBox.Show("No changes were made to the product.");
+                }
+
+              
+               
             }
         }
 
         private void btnDelete_Click(object sender, EventArgs e)
         {
 
-            if (string.IsNullOrWhiteSpace(txtId.Text))                   // potreban je samo ID za brisanje reda
+            if (string.IsNullOrWhiteSpace(txtId.Text))             
             {
                 MessageBox.Show("Check the ID field, it is required to delete the record.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -143,7 +167,7 @@ namespace ProductsCRUD
             }
         }
 
-        private void dgvProducts_CellContentClick(object sender, DataGridViewCellEventArgs e)   // prikaz slike proizvoda u novoj formi 
+        private void dgvProducts_CellContentClick(object sender, DataGridViewCellEventArgs e)  
         {
             if (dgvProducts.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
             {
